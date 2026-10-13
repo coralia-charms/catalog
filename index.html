@@ -140,6 +140,22 @@ function toast(m){const t=$('#toast');t.innerHTML=`<div class="toast">${esc(m)}<
 /* ---------- pricing ---------- */
 const freeNeeded=()=>Math.min(10,Math.max(1,parseInt(data.shop.freeCount)||1));
 const freeTarget=()=>data.charms.some(c=>c.standard&&c.available!==false)?freeNeeded():0;
+const DT={pageTitle:'',
+how1t:'1 · Pick a chain',how1d:'Choose a bracelet or necklace.',
+how2t:'2 · Free charm',how2d:'Every chain includes {free} — on us.',
+how3t:'3 · Add & arrange',how3d:'Add extras at their listed price, then set the order you like.',
+how4t:'4 · Send your order',how4d:'Save the order image and send it to us to confirm.',
+chainsH:'Chains',chainsSub:'Each chain comes with {free} for free ({count} to choose from).',
+badge:'+ {n} free charm{s}',
+charmsH:'Charms',charmsSub:'Every chain includes {free} for free. Any charm can be added as an extra.',
+stdH:'Standard Charms',stdSub:'Free with every chain, or add more at the price shown.',
+premH:'Premium Charms',premSub:'Add these as extras at the price shown.',
+freeTitle:'Your free charm{s}',freeSub:'Standard charms — included with your chain, pick {n}.',
+extrasTitle:'Add more charms',extrasSub:'Each extra charm is priced separately.',
+arrangeTitle:'Arrange your charms',arrangeSub:'Use the arrows to set the order, left to right along your {type}.'};
+const rawT=k=>{const t=data.shop.text;return(t&&t[k]!=null&&String(t[k]).trim()!=='')?String(t[k]):DT[k]};
+function T(k,x){const n=freeNeeded(),cnt=data.charms.filter(c=>c.standard&&c.available!==false).length;
+  return esc(rawT(k).replace(/\{n\}/g,n).replace(/\{s\}/g,n>1?'s':'').replace(/\{free\}/g,n+' Standard charm'+(n>1?'s':'')).replace(/\{count\}/g,cnt).replace(/\{type\}/g,(x&&x.type)||''))}
 const freeSum=f=>Object.values(f||{}).reduce((a,b)=>a+b,0);
 function syncArr(b){
   const want=[];
@@ -156,6 +172,7 @@ const cartTotal=()=>cart.reduce((s,l)=>s+lineTotal(l),0);
 /* ---------- page ---------- */
 function renderPage(){
   const s=data.shop;
+  document.title=(s.text&&s.text.pageTitle&&s.text.pageTitle.trim())||s.name||document.title;
   const types=['All',...Array.from(new Set(data.chains.map(c=>c.type)))];
   const chains=data.chains.filter(c=>filter==='All'||c.type===filter);
   const freeCount=data.charms.filter(c=>c.standard&&c.available!==false).length;
@@ -163,22 +180,22 @@ function renderPage(){
   <header class="top">${isOwner?`<button class="btn sm ghost editbtn" data-act="admin">✎ Edit catalog</button>`:''}
     <img class="logo" src="${LOGO}" alt="${esc(s.name)}"><h1 class="sr">${esc(s.name)}</h1><p>${esc(s.tagline)}</p></header>
   <div class="how">
-    <div><b>1 · Pick a chain</b>Choose a bracelet or necklace.</div>
-    <div><b>2 · Free charm</b>Every chain includes ${freeNeeded()} standard charm${freeNeeded()>1?'s':''} — on us.</div>
-    <div><b>3 · Add &amp; arrange</b>Add extras at their listed price, then set the order you like.</div>
-    <div><b>4 · Send your order</b>Save the order image and send it to us to confirm.</div>
+    <div><b>${T('how1t')}</b>${T('how1d')}</div>
+    <div><b>${T('how2t')}</b>${T('how2d')}</div>
+    <div><b>${T('how3t')}</b>${T('how3d')}</div>
+    <div><b>${T('how4t')}</b>${T('how4d')}</div>
   </div>
-  <section><h2>Chains</h2><p class="sub">Each chain comes with ${freeNeeded()===1?'one free standard charm':freeNeeded()+' free standard charms'} (${freeCount} to choose from).</p>
+  <section><h2>${T('chainsH')}</h2><p class="sub">${T('chainsSub')}</p>
     <div class="tabs">${types.map(t=>`<button class="tab ${t===filter?'on':''}" data-act="filter" data-v="${esc(t)}">${esc(t==='All'?'All':t+'s')}</button>`).join('')}</div>
     <div class="grid">${chains.map(c=>`<div class="card ${c.available===false?'soldout':''}">
       <div class="ph">${c.img?`<img src="${esc(c.img)}" alt="${esc(c.name)}">`:esc(c.emoji||'✨')}</div>
       <div class="bd"><span class="tag">${esc(c.type)}</span><h3>${esc(c.name)}</h3>
-      <p class="desc">${esc(c.desc)}</p><span class="badge">+ ${freeNeeded()} free standard charm${freeNeeded()>1?'s':''}</span>
+      <p class="desc">${esc(c.desc)}</p><span class="badge">${T('badge')}</span>
       <div class="row" style="margin-top:auto;padding-top:6px"><span class="price">${money(c.price)}</span>
       ${c.available===false?'<span class="tag">Sold out</span>':`<button class="btn sm" data-act="build" data-id="${c.id}">Customize</button>`}</div></div></div>`).join('')||'<div class="empty">No chains listed yet.</div>'}</div>
   </section>
-  <section><h2>Charms</h2><p class="sub">Every chain includes ${freeNeeded()===1?'one Standard charm':freeNeeded()+' Standard charms'} for free. Any charm can be added as an extra.</p>
-    ${data.charms.length?[['Standard Charms','Free with every chain, or add more at the price shown.',data.charms.filter(c=>c.standard)],['Premium Charms','Add these as extras at the price shown.',data.charms.filter(c=>!c.standard)]].filter(g=>g[2].length).map(g=>`<h3 class="grp">${g[0]}</h3><p class="sub" style="margin-bottom:10px">${g[1]}</p><div class="mini">${g[2].map(c=>`<div class="card ${c.available===false?'soldout':''}"><div class="ph">${c.img?`<img src="${esc(c.img)}" alt="${esc(c.name)}">`:esc(c.emoji||'✨')}</div>
+  <section><h2>${T('charmsH')}</h2><p class="sub">${T('charmsSub')}</p>
+    ${data.charms.length?[[T('stdH'),T('stdSub'),data.charms.filter(c=>c.standard)],[T('premH'),T('premSub'),data.charms.filter(c=>!c.standard)]].filter(g=>g[2].length).map(g=>`<h3 class="grp">${g[0]}</h3><p class="sub" style="margin-bottom:10px">${g[1]}</p><div class="mini">${g[2].map(c=>`<div class="card ${c.available===false?'soldout':''}"><div class="ph">${c.img?`<img src="${esc(c.img)}" alt="${esc(c.name)}">`:esc(c.emoji||'✨')}</div>
       <div class="bd"><h3>${esc(c.name)}</h3><span class="price" style="font-size:15px">${money(c.price)}</span>
       ${c.available===false?'<span class="tag">Sold out</span>':c.standard?'<span class="badge">Free pick option</span>':''}</div></div>`).join('')}</div>`).join(''):'<div class="empty">No charms listed yet.</div>'}
   </section>
@@ -206,12 +223,12 @@ function buildHtmlView(){
   const extra=data.charms;
   let tot=ch.price;for(const id in b.extras){const c=charmById(id);if(c)tot+=c.price*b.extras[id]}
   return `<div class="hd">${thumb(ch)}<div><span class="tag">${esc(ch.type)}</span><h2>${esc(ch.name)}</h2><div class="price">${money(ch.price)}</div></div></div>
-  <div class="step"><h3>Your free charm${freeNeeded()>1?'s':''}</h3><p class="sub">Standard charms — included with your chain, pick ${freeNeeded()>1?freeNeeded()+' ('+freeSum(b.free)+' of '+freeNeeded()+' chosen)':'one'}.</p>
+  <div class="step"><h3>${T('freeTitle')}</h3><p class="sub">${T('freeSub')}${freeNeeded()>1?` <span class="tag" style="margin-left:6px">${freeSum(b.free)} of ${freeNeeded()} chosen</span>`:''}</p>
     <div class="picks">${free.length?free.map(c=>freeNeeded()===1?`<button class="pick ${b.free[c.id]?'on':''}" data-act="free" data-id="${c.id}" ${c.available===false?'disabled':''}>${thumb(c)}<b>${esc(c.name)}</b><small>${c.available===false?'Sold out':'FREE'}</small></button>`:`<div class="pick ${b.free[c.id]?'on':''}" style="cursor:default;${c.available===false?'opacity:.45':''}">${thumb(c)}<b>${esc(c.name)}</b><small>${c.available===false?'Sold out':'FREE'}</small>${c.available===false?'':`<div class="stepper"><button data-act="fq" data-id="${c.id}" data-d="-1" aria-label="Less">−</button><span>${b.free[c.id]||0}</span><button data-act="fq" data-id="${c.id}" data-d="1" aria-label="More">+</button></div>`}</div>`).join(''):'<div class="empty">No standard charms listed yet.</div>'}</div></div>
-  <div class="step"><h3>Add more charms <span class="tag">optional</span></h3><p class="sub">Each extra charm is priced separately.</p>
-    ${[['Standard',extra.filter(c=>c.standard)],['Premium',extra.filter(c=>!c.standard)]].filter(g=>g[1].length).map(g=>`<h4 class="grp">${g[0]}</h4><div class="picks">${g[1].map(c=>`<div class="pick ${b.extras[c.id]?'on':''}" style="cursor:default;${c.available===false?'opacity:.45':''}">${thumb(c)}<b>${esc(c.name)}</b><small>${money(c.price)}</small>
+  <div class="step"><h3>${T('extrasTitle')} <span class="tag">optional</span></h3><p class="sub">${T('extrasSub')}</p>
+    ${[[T('stdH'),extra.filter(c=>c.standard)],[T('premH'),extra.filter(c=>!c.standard)]].filter(g=>g[1].length).map(g=>`<h4 class="grp">${g[0]}</h4><div class="picks">${g[1].map(c=>`<div class="pick ${b.extras[c.id]?'on':''}" style="cursor:default;${c.available===false?'opacity:.45':''}">${thumb(c)}<b>${esc(c.name)}</b><small>${money(c.price)}</small>
       ${c.available===false?'<small>Sold out</small>':`<div class="stepper"><button data-act="qty" data-id="${c.id}" data-d="-1" aria-label="Less">−</button><span>${b.extras[c.id]||0}</span><button data-act="qty" data-id="${c.id}" data-d="1" aria-label="More">+</button></div>`}</div>`).join('')}</div>`).join('')}</div>
-  ${b.arr.length>1?`<div class="step"><h3>Arrange your charms</h3><p class="sub">Use the arrows to set the order, left to right along your ${esc(ch.type.toLowerCase())}.</p>
+  ${b.arr.length>1?`<div class="step"><h3>${T('arrangeTitle')}</h3><p class="sub">${T('arrangeSub',{type:ch.type.toLowerCase()})}</p>
     <div class="strip">${b.arr.map((t,i)=>{const c=charmById(t.id);return `<div class="slot">${thumb(c,'s')}<b>${esc(c.name)}</b><em>${t.free?'FREE':'&nbsp;'}</em><div class="mv"><button data-act="mv" data-i="${i}" data-d="-1" ${i===0?'disabled':''} aria-label="Move left">‹</button><button data-act="mv" data-i="${i}" data-d="1" ${i===b.arr.length-1?'disabled':''} aria-label="Move right">›</button></div></div>`}).join('')}</div></div>`:''}
   <label class="fld"><span>Length / size / notes for this item (optional)</span><input type="text" data-bind="b.note" value="${esc(b.note)}" placeholder="e.g. 17 cm wrist, initial letter “M”"></label>
   <div class="row" style="margin-top:16px"><div class="total">${money(tot)}</div>${freeSum(b.free)<freeTarget()?`<span class="desc" style="flex:1">Pick your ${freeTarget()} free charm${freeTarget()>1?'s':''} to continue.</span>`:''}<button class="btn" data-act="addline" ${freeSum(b.free)<freeTarget()?'disabled':''}>${b.editIndex!=null?'Save changes':'Add to my order'}</button></div>`;
@@ -242,6 +259,25 @@ function reviewView(){
 }
 
 /* ---------- admin ---------- */
+function textEditors(){
+  const ip=(k,l)=>`<label class="fld"><span>${l}</span><input type="text" data-tx="${k}" value="${esc(rawT(k))}"></label>`;
+  return `<div class="step"><h3>Page text &amp; instructions</h3>
+  <p class="sub">Edit any wording below. You can use these shortcuts: <b>{n}</b> = number of free charms, <b>{s}</b> = “s” when there is more than one, <b>{free}</b> = e.g. “3 Standard charms”, <b>{count}</b> = how many Standard charms are available, <b>{type}</b> = bracelet / necklace.</p>
+  ${ip('pageTitle','Page title (browser tab) — leave empty to use the shop name')}
+  <h4 class="grp">How it works (4 boxes)</h4>
+  ${[1,2,3,4].map(i=>`<div class="g3">${ip('how'+i+'t','Box '+i+' title')}${ip('how'+i+'d','Box '+i+' text')}</div>`).join('')}
+  <h4 class="grp">Section headings</h4>
+  <div class="g3">${ip('chainsH','Chains heading')}${ip('chainsSub','Chains instructions')}</div>
+  <div class="g3">${ip('badge','Label on each chain card')}<span></span></div>
+  <div class="g3">${ip('charmsH','Charms heading')}${ip('charmsSub','Charms instructions')}</div>
+  <div class="g3">${ip('stdH','Standard group heading')}${ip('stdSub','Standard instructions')}</div>
+  <div class="g3">${ip('premH','Premium group heading')}${ip('premSub','Premium instructions')}</div>
+  <h4 class="grp">When customers customize a chain</h4>
+  <div class="g3">${ip('freeTitle','Free charm heading')}${ip('freeSub','Free charm instructions')}</div>
+  <div class="g3">${ip('extrasTitle','Extra charms heading')}${ip('extrasSub','Extra charms instructions')}</div>
+  <div class="g3">${ip('arrangeTitle','Arrange heading')}${ip('arrangeSub','Arrange instructions')}</div>
+  <div class="actions"><button class="btn sm ghost" data-act="resettext">Reset all text to defaults</button></div></div>`;
+}
 function adminView(){
   const s=draft.shop;
   const fld=(l,h)=>`<label class="fld"><span>${l}</span>${h}</label>`;
@@ -258,7 +294,7 @@ function adminView(){
     <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px">
     ${k==='charms'?`<label class="chk" style="margin:0"><input type="checkbox" data-k="${k}" data-i="${i}" data-f="standard" ${it.standard?'checked':''}><span>Standard charm (can be the free pick)</span></label>`:''}
     <label class="chk" style="margin:0"><input type="checkbox" data-k="${k}" data-i="${i}" data-f="available" ${it.available!==false?'checked':''}><span>In stock</span></label></div></div>`;
-  return `<h2>Edit catalog</h2><p class="desc">Change anything below, then press <b>Download catalog.json</b> and upload that file to your GitHub repository (replace the old catalog.json). Your site updates within a minute or two.</p>
+  return `<h2>Edit catalog</h2><p class="desc">Change anything below, then press <b>Save &amp; publish</b>. Your live site updates within a minute or two.</p>
   <div class="step"><h3>Shop details</h3>
   ${fld('Shop name',`<input type="text" data-sf="name" value="${esc(s.name)}">`)}
   ${fld('Tagline',`<input type="text" data-sf="tagline" value="${esc(s.tagline)}">`)}
@@ -266,19 +302,63 @@ function adminView(){
   ${fld('Currency symbol',`<input type="text" data-sf="currency" value="${esc(s.currency)}" style="max-width:120px">`)}
   ${fld('Where customers send their order image',`<input type="text" data-sf="contact" value="${esc(s.contact)}">`)}
   ${fld('Delivery note',`<textarea data-sf="deliveryNote">${esc(s.deliveryNote)}</textarea>`)}</div>
+  ${textEditors()}
   <div class="step"><h3>Chains</h3><p class="sub">Emoji · Name · Price</p>${draft.chains.map((c,i)=>card('chains',c,i)).join('')}
   <div class="actions"><button class="btn ghost" data-act="add" data-k="chains">+ Add chain</button></div></div>
   <div class="step"><h3>Charms</h3><p class="sub">Emoji · Name · Price (price applies when added as an extra)</p>${draft.charms.map((c,i)=>card('charms',c,i)).join('')}
   <div class="actions"><button class="btn ghost" data-act="add" data-k="charms">+ Add charm</button></div></div>
-  <div class="sticky-save"><button class="btn ghost" data-act="close">Cancel</button><button class="btn" data-act="save">Download catalog.json</button></div>`;
+  ${ghSection()}
+  <div class="sticky-save"><button class="btn ghost" data-act="close">Cancel</button><button class="btn ghost" data-act="dlcat">Download JSON</button><button class="btn" data-act="save" id="savebtn">Save &amp; publish</button></div>`;
 }
 function resizeImg(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{const M=360,r=Math.min(1,M/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8))};im.src=fr.result};fr.readAsDataURL(file)})}
 
+const ghLoad=()=>{try{return JSON.parse(localStorage.getItem('coralia_gh')||'{}')}catch(e){return{}}};
+const ghGuess=()=>{const m=location.hostname.match(/^([^.]+)\.github\.io$/);if(!m)return'';const seg=location.pathname.split('/').filter(Boolean)[0];return m[1]+'/'+((seg&&!/\.html?$/.test(seg))?seg:m[1]+'.github.io')};
+let ghCfg=Object.assign({repo:'',branch:'',token:'',remember:true},ghLoad());
+if(!ghCfg.repo)ghCfg.repo=ghGuess();
+function ghSection(){
+  return `<div class="step"><h3>Publishing to GitHub</h3><p class="sub">Connect once, then <b>Save &amp; publish</b> updates your live site directly. Your token is kept only in this browser.</p>
+  <label class="fld"><span>Repository (username/repo)</span><input type="text" data-gh="repo" value="${esc(ghCfg.repo)}" placeholder="your-username/your-repo" autocomplete="off"></label>
+  <label class="fld"><span>Access token</span><input type="password" data-gh="token" value="${esc(ghCfg.token)}" placeholder="github_pat_…" autocomplete="off"></label>
+  <label class="chk"><input type="checkbox" data-gh="remember" ${ghCfg.remember?'checked':''}><span>Remember on this device</span></label>
+  <details class="note"><summary><b>How do I get a token?</b></summary>
+  <ol style="margin:8px 0 0;padding-left:18px">
+  <li>On github.com click your profile photo → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b> → <b>Generate new token</b>.</li>
+  <li>Name it (for example “Shop editor”) and choose the longest expiration offered.</li>
+  <li>Under <b>Repository access</b> choose <b>Only select repositories</b> and pick your shop repository.</li>
+  <li>Under <b>Permissions → Repository permissions</b>, set <b>Contents</b> to <b>Read and write</b>.</li>
+  <li>Click <b>Generate token</b>, copy it, and paste it above.</li></ol>
+  <p class="desc" style="margin:8px 0 0">The token only works for that one repository. You can delete it any time in the same GitHub page.</p></details></div>`;
+}
+function toB64(str){const bytes=new TextEncoder().encode(str);let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin)}
 async function savePublish(){
   for(const c of draft.chains.concat(draft.charms)){c.name=(c.name||'').trim();if(!c.name){toast('Every chain and charm needs a name.');return}c.price=Number(c.price)||0}
-  downloadBlob('catalog.json',new Blob([JSON.stringify(draft,null,2)],{type:'application/json'}));
-  data=draft;ov=null;renderPage();renderOverlay();
-  toast('catalog.json downloaded — upload it to GitHub (replace the old one) to publish.');
+  const repo=(ghCfg.repo||'').trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/+$/,'');const token=(ghCfg.token||'').trim();
+  if(!/^[^\/\s]+\/[^\/\s]+$/.test(repo)||!token){toast('Add your repository and access token under “Publishing to GitHub” first (or use Download JSON).');return}
+  const btn=$('#savebtn');if(btn){btn.disabled=true;btn.textContent='Publishing…'}
+  const br=(ghCfg.branch||'').trim();
+  try{
+    const api='https://api.github.com/repos/'+repo+'/contents/catalog.json';
+    const H={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'};
+    const content=toB64(JSON.stringify(draft,null,2));
+    let done=false;
+    for(let attempt=0;attempt<2&&!done;attempt++){
+      const g=await fetch(api+(br?'?ref='+encodeURIComponent(br):''),{headers:H,cache:'no-store'});
+      let sha;if(g.ok)sha=(await g.json()).sha;else if(g.status!==404)throw {status:g.status};
+      const body=Object.assign({message:'Update catalog from admin',content},sha?{sha}:{},br?{branch:br}:{});
+      const p=await fetch(api,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},H),body:JSON.stringify(body)});
+      if(p.ok){done=true;break}
+      if((p.status===409||p.status===422)&&attempt===0)continue;
+      throw {status:p.status};
+    }
+    try{if(ghCfg.remember)localStorage.setItem('coralia_gh',JSON.stringify(ghCfg));else localStorage.removeItem('coralia_gh')}catch(e){}
+    data=draft;ov=null;renderPage();renderOverlay();
+    toast('Published! Your live site updates in about a minute.');
+  }catch(e){
+    const st=e&&e.status;
+    toast(st===401?'GitHub rejected the token. Check it is correct and has not expired.':(st===403||st===404)?'Could not write to that repository. Check the name and that the token has Contents: Read and write access.':st?('Publishing failed (error '+st+').'):'Could not reach GitHub. Check your internet connection.');
+    if(btn){btn.disabled=false;btn.textContent='Save & publish'}
+  }
 }
 
 /* ---------- order image ---------- */
@@ -414,6 +494,8 @@ document.addEventListener('click',async e=>{
   else if(a==='del'){if(confirm('Delete this item?')){draft[d.k].splice(Number(d.i),1);renderOverlay()}}
   else if(a==='imgrm'){draft[d.k][Number(d.i)].img='';renderOverlay()}
   else if(a==='save')savePublish();
+  else if(a==='dlcat')downloadBlob('catalog.json',new Blob([JSON.stringify(draft,null,2)],{type:'application/json'}));
+  else if(a==='resettext'){if(confirm('Reset all page text to the defaults?')){draft.shop.text={};renderOverlay()}}
 });
 document.addEventListener('input',e=>{
   const t=e.target,d=t.dataset;
@@ -424,7 +506,7 @@ document.addEventListener('input',e=>{
     else if(d.bind==='c.contact')customer.contact=v;
     else if(d.bind==='c.address')customer.address=v;
     else if(d.bind==='c.delivery'){customer.delivery=v;renderOverlay()}
-  }else if(d.sf){draft.shop[d.sf]=t.value}
+  }else if(d.gh){ghCfg[d.gh]=t.type==='checkbox'?t.checked:t.value}else if(d.tx){if(!draft.shop.text)draft.shop.text={};draft.shop.text[d.tx]=t.value}else if(d.sf){draft.shop[d.sf]=t.value}
   else if(d.k&&d.f){
     const it=draft[d.k][Number(d.i)];
     if(t.type==='checkbox')it[d.f]=t.checked;
