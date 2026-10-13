@@ -1,13 +1,13 @@
 {
   "shop": {
     "name": "Coralia",
-    "tagline": "Build your own charm bracelet or necklace",
+    "tagline": "All our charms and chains are stainless steel but it needs proper care to keep your Coralia treasures shining for years.",
     "currency": "₱",
     "contact": "Send your order image to us on Instagram: @coralia.charms",
-    "deliveryNote": "Delivery is optional. If you choose delivery, the delivery fee is paid by the customer and will be confirmed by us.",
+    "deliveryNote": "All orders are for DELIVERY ONLY. The delivery fee is paid by the customer and will be confirmed by us.",
     "freeCount": "3",
     "text": {
-      "pageTitle": "All of our charms and chains are stainless steel but it needs a proper care to keep your Coralia treasures shining for years."
+      "pageTitle": ""
     }
   },
   "chains": [
